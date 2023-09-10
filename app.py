@@ -1,6 +1,8 @@
 from flask import Flask, render_template, session, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 
+from datetime import datetime
+
 # forms
 from forms.formTareas import formTarea
 from flask import url_for
@@ -11,6 +13,12 @@ app.secret_key = 'XXXXXXXXXXX'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tareas.db'
 
 db = SQLAlchemy(app)
+
+# otras funciones
+def calcDiasRestantes(fecha_termino):
+    fecha_actual = datetime.now()
+    dias_restantes = fecha_termino - fecha_actual
+    return dias_restantes.days
 
 class Tarea(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -35,13 +43,32 @@ def index():
 # ruta de tareas, si se le pasa el valor id entonces mostrará un template, caso contrario, mostrará otro
 @app.route('/tarea/', methods=['GET', 'POST'])
 @app.route('/tarea/<int:id>', methods=['GET', 'POST'])
-def verTareas(id=None):
+@app.route('/tarea/filtrar/<estado>', methods=['GET', 'POST'])
+def verTareas(id=None, estado=None):
+    # obtener el parámetro orden desde la url (get)
+    orden = request.args.get('orden', 'asc')
+
+    query = Tarea.query
+    if estado is not None:
+        if estado == "completadas":
+            query = query.filter_by(estado=True)
+        elif estado == "pendientes":
+            query = query.filter_by(estado=False)
+        else:
+            session['mensajeCustom'] = 'Estado no válido'
+
     if id is None:
-        tareas = Tarea.query.all()
-        return render_template('tareas.html', tareas=tareas)
+        if orden == 'asc':
+            query = query.order_by(Tarea.fecha_termino.asc())
+        elif orden == 'desc':
+            query = query.order_by(Tarea.fecha_termino.desc())
+        
+        tareas = query.all()
+        return render_template('tareas.html', tareas=tareas, calcDiasRestantes = calcDiasRestantes, orden=orden, estado=estado)
     else:
         tarea = Tarea.query.get(id)
-        return render_template('tarea.html', tarea=tarea)
+        dias_restantes = calcDiasRestantes(tarea.fecha_termino)
+        return render_template('tarea.html', tarea=tarea, dias_restantes=dias_restantes)
 
 @app.route('/tarea/crear', methods=['POST', 'GET'])
 def crearTarea():

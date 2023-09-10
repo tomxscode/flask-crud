@@ -9,6 +9,11 @@
     <div class="card-body">
         <h5 class="card-title">{{ tarea.titulo }}</h5>
         <p class="card-text">{{ tarea.descripcion }}</p>
+        {% if dias_restantes >= 0 %}
+            <p class="text-success">La tarea caduca en {{ dias_restantes }} día(s)</p>
+        {% else %}
+            <p class="text-danger">La tarea caducó hace {{ dias_restantes }} día(s)</p>
+        {% endif %}
         {% if tarea.estado %}
             <a href="{{ url_for('editarEstado', id=tarea.id ) }}" class="btn btn-warning"><i class="bi bi-dash-circle-fill"></i> Marcar como incompletada</a>
         {% else %}
