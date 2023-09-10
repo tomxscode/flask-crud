@@ -5,13 +5,13 @@
 {% block content %}
 <h1 class="mt-5">Listado de tareas</h1>
 <div class="row">
-    {% for i in range(tareas|length) %}
+    {% for tarea in tareas %}
     <div class="col-md-4">
-        <a href="{{ url_for('verTareas', id=i) }}" class="card-link">
+        <a href="{{ url_for('verTareas', id=tarea.id) }}" class="card-link">
             <div class="card mt-4">
                 <div class="card-body">
-                    <h5 class="card-title">{{ tareas[i] }}</h5>
-                    <p class="card-text">{{ descripciones[i] }}</p>
+                    <h5 class="card-title">{{ tarea.titulo }}</h5>
+                    <p class="card-text">{{ tarea.descripcion }}</p>
                 </div>
             </div>
         </a>

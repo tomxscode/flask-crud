@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}{{ tarea }}{% endblock %}
+{% block title %}{{ tarea.titulo }}{% endblock %}
 
 {% block content %}
-<h1 class="mt-5">{{ tarea }}</h1>
+<h1 class="mt-5">{{ tarea.titulo }}</h1>
 
 <div class="card mt-4">
     <div class="card-body">
-        <h5 class="card-title">{{ tarea }}</h5>
-        <p class="card-text">{{ descripcion }}</p>
+        <h5 class="card-title">{{ tarea.titulo }}</h5>
+        <p class="card-text">{{ tarea.descripcion }}</p>
     </div>
 </div>
 

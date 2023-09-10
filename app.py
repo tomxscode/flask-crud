@@ -1,4 +1,5 @@
 from flask import Flask, render_template, session, redirect
+from flask_sqlalchemy import SQLAlchemy
 
 # forms
 from forms.formTareas import formTarea
@@ -6,12 +7,25 @@ from flask import url_for
 
 app = Flask(__name__)
 app.secret_key = 'XXXXXXXXXXX'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tareas.db'
 
-# tareas
-tareas = []
-descripciones = []
-fechas = []
+db = SQLAlchemy(app)
 
+class Tarea(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    titulo = db.Column(db.String(100), nullable=False)
+    descripcion = db.Column(db.String(200), nullable=False)
+    fecha_termino = db.Column(db.DateTime, nullable=False)
+    estado = db.Column(db.Boolean, default=False)
+
+    def __init__(self, titulo, descripcion, fecha_termino):
+        self.titulo = titulo
+        self.descripcion = descripcion
+        self.fecha_termino = fecha_termino
+        self.estado = False
+
+    def __repr__(self):
+        return '<Tarea %r>' % self.titulo
 
 @app.route('/')
 def index():
@@ -22,23 +36,23 @@ def index():
 @app.route('/tarea/<int:id>', methods=['GET', 'POST'])
 def verTareas(id=None):
     if id is None:
-        return render_template('tareas.html', tareas=tareas, descripciones=descripciones, fechas=fechas)
+        tareas = Tarea.query.all()
+        return render_template('tareas.html', tareas=tareas)
     else:
-        return render_template('tarea.html', tarea=tareas[id], descripcion=descripciones[id], fecha=fechas[id])
+        tarea = Tarea.query.get(id)
+        return render_template('tarea.html', tarea=tarea)
 
 @app.route('/tarea/crear', methods=['POST', 'GET'])
 def crearTarea():
     form = formTarea()
     if form.validate_on_submit():
-        tareas.append(form.titulo.data)
-        descripciones.append(form.descripcion.data)
-        fechas.append(form.fecha_termino.data)
+        titulo = form.titulo.data
+        descripcion = form.descripcion.data
+        fecha_termino = form.fecha_termino.data
+        db.session.add(Tarea(titulo, descripcion, fecha_termino))
+        db.session.commit()
         session['exitoMsg'] = 'Tarea creada correctamente'
-        if 'exitoMsg' in session:
-            print("La variable de sesión exitoMsg está presente.")
-        else:
-            print("La variable de sesión exitoMsg no está presente.")
-        print(tareas, descripciones, fechas)
+        print(Tarea.query.all())
     return render_template('crear_tarea.html', form=form)
 
 # iniciar el servidor flask
