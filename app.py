@@ -25,8 +25,8 @@ db = SQLAlchemy(app)
 
 # otras funciones
 def calcDiasRestantes(fecha_termino):
-    fecha_actual = datetime.now()
-    dias_restantes = fecha_termino - fecha_actual
+    fecha_actual = datetime.now().date()
+    dias_restantes = (fecha_termino.date()) - fecha_actual
     return dias_restantes.days
 
 class Tarea(db.Model):
