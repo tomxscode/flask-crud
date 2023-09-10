@@ -22,14 +22,4 @@
         {{ form.enviarBtn (class="btn btn-primary mt-2") }}
     </div>
 </form>
-
-{% if 'exitoMsg' in session %}
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-<script>
-    Toastify({
-        text: "{{ session.pop('exitoMsg') }}"
-    }).showToast();
-</script>
-{% endif %}
-
 {% endblock %}

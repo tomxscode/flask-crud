@@ -5,11 +5,16 @@
 {% block content %}
 <h1 class="mt-5">{{ tarea.titulo }}</h1>
 
-<div class="card mt-4">
+<div class="card mt-4 {% if tarea.estado %}bg-secondary{% endif %}">
     <div class="card-body">
         <h5 class="card-title">{{ tarea.titulo }}</h5>
         <p class="card-text">{{ tarea.descripcion }}</p>
-        <a href="{{ url_for('editarEstado', id=tarea.id ) }}" class="btn btn-success">Marcar como completada</a>
+        {% if tarea.estado %}
+            <a href="{{ url_for('editarEstado', id=tarea.id ) }}" class="btn btn-warning">Marcar como incompletada</a>
+        {% else %}
+            <a href="{{ url_for('editarEstado', id=tarea.id ) }}" class="btn btn-success">Marcar como completada</a>
+        {% endif %}
+        <a href="{{ url_for('eliminarTarea', id=tarea.id ) }}" class="btn btn-danger">Eliminar</a>
     </div>
 </div>
 

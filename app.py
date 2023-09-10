@@ -52,18 +52,28 @@ def crearTarea():
         fecha_termino = form.fecha_termino.data
         db.session.add(Tarea(titulo, descripcion, fecha_termino))
         db.session.commit()
-        session['exitoMsg'] = 'Tarea creada correctamente'
+        session['mensajeCustom'] = 'Tarea creada correctamente'
         print(Tarea.query.all())
     return render_template('crear_tarea.html', form=form)
 
-# métodos POST
+# métodos tareas
 @app.route('/tarea/editar/estado/<int:id>', methods=['GET'])
 def editarEstado(id):
     if request.method == 'GET':
         tarea = Tarea.query.get(id)
         tarea.estado = not tarea.estado
         db.session.commit()
+        session['mensajeCustom'] = 'Estado modificado correctamente'
         return redirect(url_for('verTareas', id = id))
+    
+@app.route('/tarea/eliminar/<int:id>', methods=['GET'])
+def eliminarTarea(id):
+    if request.method == 'GET':
+        tarea = Tarea.query.get(id)
+        db.session.delete(tarea)
+        db.session.commit()
+        session['mensajeCustom'] = 'Tarea eliminada correctamente'
+        return redirect(url_for('verTareas'))
 
 # iniciar el servidor flask
 if __name__ == '__main__':

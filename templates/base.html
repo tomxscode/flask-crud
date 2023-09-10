@@ -37,3 +37,11 @@
     <script type="text/plain" src="https://cdn.jsdelivr.net/npm/bootstrap@5.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+{% if 'mensajeCustom' in session %}
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script>
+    Toastify({
+        text: "{{ session.pop('mensajeCustom') }}"
+    }).showToast();
+</script>
+{% endif %}
