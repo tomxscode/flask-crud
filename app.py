@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, redirect
+from flask import Flask, render_template, session, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 
 # forms
@@ -57,6 +57,31 @@ def crearTarea():
     return render_template('crear_tarea.html', form=form)
 
 # métodos tareas
+@app.route('/tarea/editar/<int:id>', methods=['GET', 'POST'])
+def editarTarea(id):
+    tarea = Tarea.query.get(id)
+    if tarea is None:
+        session['mensajeCustom'] = 'Tarea no encontrada'
+        return redirect(url_for('verTareas'))
+
+    form = formTarea(obj=tarea)
+
+    if request.method == 'POST' and form.validate_on_submit():
+        tarea.titulo = form.titulo.data
+        tarea.descripcion = form.descripcion.data
+        tarea.fecha_termino = form.fecha_termino.data
+
+        try:
+            db.session.commit()
+            session['mensajeCustom'] = 'Tarea modificada correctamente'
+            return redirect(url_for('verTareas', id=id))
+        except Exception as e:
+            db.session.rollback()
+            session['mensajeCustom'] = f'Error al modificar la tarea{str(e)}'
+
+    return render_template('editar_tarea.html', form=form, tarea=tarea)
+
+
 @app.route('/tarea/editar/estado/<int:id>', methods=['GET'])
 def editarEstado(id):
     if request.method == 'GET':
