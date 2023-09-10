@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tarea }}{% endblock %}
+
+{% block content %}
+<h1 class="mt-5">{{ tarea }}</h1>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h5 class="card-title">{{ tarea }}</h5>
+        <p class="card-text">{{ descripcion }}</p>
+    </div>
+</div>
+
+<!-- Botón para regresar a la lista de tareas -->
+<a href="{{ url_for('verTareas' ) }}" class="btn btn-primary mt-3">Volver a la Lista de Tareas</a>
+{% endblock %}

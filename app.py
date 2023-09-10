@@ -17,6 +17,15 @@ fechas = []
 def index():
     return render_template('index.html')
 
+# ruta de tareas, si se le pasa el valor id entonces mostrará un template, caso contrario, mostrará otro
+@app.route('/tarea/', methods=['GET', 'POST'])
+@app.route('/tarea/<int:id>', methods=['GET', 'POST'])
+def verTareas(id=None):
+    if id is None:
+        return render_template('tareas.html', tareas=tareas, descripciones=descripciones, fechas=fechas)
+    else:
+        return render_template('tarea.html', tarea=tareas[id], descripcion=descripciones[id], fecha=fechas[id])
+
 @app.route('/tarea/crear', methods=['POST', 'GET'])
 def crearTarea():
     form = formTarea()
