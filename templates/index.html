@@ -1,11 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio</title>
-</head>
-<body>
-    
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Gráfico de Tareas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>
+        Todas tus tareas en un mismo lugar
+    </h1>
+    <div class="row">
+        <div class="col-md-6"></div>
+        <div class="col-md-6 text-center">
+            <h3>Tareas actuales</h3>
+            {% if values[1] < values[4] %}
+                <div class="alert alert-warning">
+                    <p>Tienes más tareas por completar que completadas</p>
+                </div>
+            {% endif %}
+            <canvas id="grafico" style="max-height: 400px;"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/generarGraficos.js') }}"></script>
+<script>
+    graficoPastel(['Completadas', 'Pendientes'], {{ values }}, ['#3498db', '#e74c3c'], 'grafico')
+    console.log({{ values }})
+</script>
+
+{% endblock %}

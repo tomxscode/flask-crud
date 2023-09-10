@@ -4,6 +4,8 @@ from flask_login import LoginManager, login_required
 
 from datetime import datetime
 
+import json
+
 # forms
 from forms.formTareas import formTarea
 from forms.usuario import formRegistro, formLogin
@@ -11,6 +13,7 @@ from flask import url_for
 from flask import request
 from flask_login import login_user, current_user, UserMixin
 from flask_login import logout_user
+import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 app.secret_key = 'XXXXXXXXXXX'
@@ -65,8 +68,18 @@ class Usuario(db.Model, UserMixin):
         return True
 
 @app.route('/')
+@login_required
 def index():
-    return render_template('index.html')
+    # funcionalidad para generar un gráfico
+    # obtención de tareas
+    tareas_completadas = Tarea.query.filter_by(usuario_id = current_user.id, estado=True).count()
+    tareas_pendientes = Tarea.query.filter_by(usuario_id = current_user.id, estado=False).count()
+
+    # datos para los gráficos
+    labels = json.dumps(['Completadas', 'Pendientes'])
+    datos = json.dumps([tareas_completadas, tareas_pendientes])
+
+    return render_template('index.html', labels=labels, values=datos)
 
 # manejo de login
 @login_manager.user_loader
