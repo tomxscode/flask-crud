@@ -7,10 +7,11 @@
 <div class="row">
     {% for tarea in tareas %}
     <div class="col-md-4">
-        <a href="{{ url_for('verTareas', id=tarea.id) }}" class="card-link">
+        <a href="{{ url_for('verTareas', id=tarea.id) }}" class="card-link" style="text-decoration: none;">
             <div class="card mt-4 {% if tarea.estado %}bg-secondary{% endif %}">
                 <div class="card-body">
                     <h5 class="card-title" {% if tarea.estado %}style="text-decoration: line-through;"{% endif %}>{{ tarea.titulo }}</h5>
+                    <p class="text-muted">{{ tarea.fecha_termino }}</p>
                     <p class="card-text">{{ tarea.descripcion }}</p>
                 </div>
             </div>
