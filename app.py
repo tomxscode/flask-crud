@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 # forms
 from forms.formTareas import formTarea
 from flask import url_for
+from flask import request
 
 app = Flask(__name__)
 app.secret_key = 'XXXXXXXXXXX'
@@ -54,6 +55,15 @@ def crearTarea():
         session['exitoMsg'] = 'Tarea creada correctamente'
         print(Tarea.query.all())
     return render_template('crear_tarea.html', form=form)
+
+# métodos POST
+@app.route('/tarea/editar/estado/<int:id>', methods=['GET'])
+def editarEstado(id):
+    if request.method == 'GET':
+        tarea = Tarea.query.get(id)
+        tarea.estado = not tarea.estado
+        db.session.commit()
+        return redirect(url_for('verTareas', id = id))
 
 # iniciar el servidor flask
 if __name__ == '__main__':
