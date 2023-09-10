@@ -53,7 +53,7 @@ def crearTarea():
         db.session.add(Tarea(titulo, descripcion, fecha_termino))
         db.session.commit()
         session['mensajeCustom'] = 'Tarea creada correctamente'
-        print(Tarea.query.all())
+        return redirect(url_for('verTareas'))
     return render_template('crear_tarea.html', form=form)
 
 # métodos tareas
