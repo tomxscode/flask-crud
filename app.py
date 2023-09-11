@@ -279,12 +279,21 @@ def editarTarea(id):
         return redirect(url_for('verTareas'))
 
     form = formTarea(obj=tarea)
+    # cargar las categorías desde la base de datos
+    categorias = Categoria.query.filter_by(usuario_id=current_user.id).all()
+    # agregar la opción "sin categoría"
+    form.categoria.choices = [('0', 'Sin categoría')]
+    # agregar las categorías al formulario
+    form.categoria.choices += [(categoria.id, categoria.nombre) for categoria in categorias]
 
     if request.method == 'POST' and form.validate_on_submit():
         tarea.titulo = form.titulo.data
         tarea.descripcion = form.descripcion.data
         tarea.fecha_termino = form.fecha_termino.data
-
+        if form.categoria.data != 0:
+            tarea.categoria_id = form.categoria.data
+        elif form.categoria.data == 0:
+            tarea.categoria_id = None
         try:
             db.session.commit()
             session['mensajeCustom'] = 'Tarea modificada correctamente'

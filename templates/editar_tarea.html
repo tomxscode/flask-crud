@@ -16,6 +16,11 @@
         {{ form.descripcion (class="form-control") }}
     </div>
     <div class="form-group">
+        {{ form.categoria.label }}
+        <small>(Este campo es opcional)</small>
+        {{ form.categoria (class="form-select") }}
+    </div>
+    <div class="form-group">
         {{ form.fecha_termino.label }}
         {{ form.fecha_termino (class="form-control") }}
     </div>
