@@ -193,13 +193,48 @@ def crearCategoria():
     form = formCategoria()
     if form.validate_on_submit():
         nombre = form.nombre.data
+        # comprobar si no hay una categoría con el mismo nombre del mismo usuario
+        categoria_existente = Categoria.query.filter_by(nombre=nombre, usuario_id=current_user.id).first()
+        if categoria_existente is not None:
+            session['mensajeCustom'] = 'Ya existe una categoría con ese nombre'
+            return redirect(url_for('crearCategoria'))
         color = form.color.data
         db.session.add(Categoria(nombre, color, current_user.id))
         db.session.commit()
         session['mensajeCustom'] = 'Categoría creada correctamente'
-        return redirect(url_for('verCategorias'))
+        # rederijir al usuario a la categoria creada
+        return redirect(url_for('verCategoria', id=Categoria.query.filter_by(nombre=nombre, usuario_id=current_user.id).first().id))
     return render_template('crear_categoria.html', form=form)
 
+@app.route('/categoria/eliminar/<int:id>', methods=['GET'])
+@login_required
+def eliminarCategoria(id):
+    categoria = Categoria.query.get(id)
+    if categoria.usuario_id != current_user.id:
+        session['mensajeCustom'] = 'No tienes permiso para eliminar esta categoría'
+        return redirect(url_for('verCategorias'))
+    else:
+        db.session.delete(categoria)
+        db.session.commit()
+        session['mensajeCustom'] = 'Categoría eliminada correctamente'
+        return redirect(url_for('verCategoria'))
+
+@app.route('/categoria/', methods=['GET'])
+@app.route('/categoria/<int:id>', methods=['GET'])
+@login_required
+def verCategoria(id = None):
+    if id is None:
+        # mostrar todas las categorias
+        categorias = Categoria.query.filter_by(usuario_id=current_user.id).all()
+        return render_template('categorias.html', categorias=categorias)
+    else:
+        categoria = Categoria.query.get(id)
+        if categoria.usuario_id != current_user.id:
+            session['mensajeCustom'] = 'No tienes permiso para ver esta categoría'
+            return redirect(url_for('verCategorias'))
+        else:
+            return render_template('categoria.html', categoria=categoria)
+        
 # métodos tareas
 @app.route('/tarea/editar/<int:id>', methods=['GET', 'POST'])
 @login_required

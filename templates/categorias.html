@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Listado de categorías{% endblock %}
+
+{% block content %}
+<h1 class="mt-5">Listado de categorías</h1>
+<div class="row">
+    {% for categoria in categorias %}
+    <div class="col-md-4">
+        <a href="{{ url_for('verCategoria', id=categoria.id) }}" class="card-link" style="text-decoration: none;">
+            <div class="card mt-4 bg-{{ categoria.color }}">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        {{ categoria.nombre }}
+                    </h5>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}{{ categoria.nombre }}{% endblock %}
+
+{% block content %}
+<h1 class="mt-5">{{ categoria.nombre }}</h1>
+
+<div class="card mt-4 bg-{{ categoria.color }}">
+    <div class="card-body">
+        <h5 class="card-title">{{ categoria.nombre }}</h5>
+        <a href="#" class="btn btn-info"><i class="bi bi-pencil"></i> Editar</a>
+        <a href="{{ url_for('eliminarCategoria', id=categoria.id ) }}" class="btn btn-danger"><i class="bi bi-trash"></i> Eliminar</a>
+    </div>
+</div>
+
+<!-- Botón para regresar a la lista de tareas -->
+<a href="{{ url_for('verCategoria' ) }}" class="btn btn-primary mt-3">Volver a la Lista de Categorías</a>
+{% endblock %}
