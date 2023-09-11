@@ -9,11 +9,11 @@ import json
 # forms
 from forms.formTareas import formTarea
 from forms.usuario import formRegistro, formLogin
+from forms.formCategoria import formCategoria
 from flask import url_for
 from flask import request
 from flask_login import login_user, current_user, UserMixin
 from flask_login import logout_user
-import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 app.secret_key = 'XXXXXXXXXXX'
@@ -32,6 +32,20 @@ def calcDiasRestantes(fecha_termino):
     dias_restantes = (fecha_termino.date()) - fecha_actual
     return dias_restantes.days
 
+class Categoria(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    color = db.Column(db.String(100), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+
+    def __init__(self, nombre, color, usuario_id):
+        self.nombre = nombre
+        self.color = color
+        self.usuario_id = usuario_id
+    
+    def __repr__(self):
+        return '<Categoria %r>' % self.nombre
+
 class Tarea(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(100), nullable=False)
@@ -39,13 +53,15 @@ class Tarea(db.Model):
     fecha_termino = db.Column(db.DateTime, nullable=False)
     estado = db.Column(db.Boolean, default=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=True)
 
-    def __init__(self, titulo, descripcion, fecha_termino, usuario_id):
+    def __init__(self, titulo, descripcion, fecha_termino, usuario_id, categoria_id = None):
         self.titulo = titulo
         self.descripcion = descripcion
         self.fecha_termino = fecha_termino
         self.estado = False
         self.usuario_id = usuario_id
+        self.categoria_id = categoria_id
 
     def __repr__(self):
         return '<Tarea %r>' % self.titulo
@@ -169,6 +185,20 @@ def crearTarea():
         session['mensajeCustom'] = 'Tarea creada correctamente'
         return redirect(url_for('verTareas'))
     return render_template('crear_tarea.html', form=form)
+
+# métodos categorias
+@app.route('/categoria/crear', methods=['POST', 'GET'])
+@login_required
+def crearCategoria():
+    form = formCategoria()
+    if form.validate_on_submit():
+        nombre = form.nombre.data
+        color = form.color.data
+        db.session.add(Categoria(nombre, color, current_user.id))
+        db.session.commit()
+        session['mensajeCustom'] = 'Categoría creada correctamente'
+        return redirect(url_for('verCategorias'))
+    return render_template('crear_categoria.html', form=form)
 
 # métodos tareas
 @app.route('/tarea/editar/<int:id>', methods=['GET', 'POST'])
