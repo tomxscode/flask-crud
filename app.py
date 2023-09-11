@@ -266,6 +266,30 @@ def verCategoria(id = None):
         else:
             return render_template('categoria.html', categoria=categoria)
         
+@app.route('/categoria/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editarCategoria(id):
+    categoria = Categoria.query.get(id)
+    if categoria.usuario_id != current_user.id:
+        session['mensajeCustom'] = 'No tienes permiso para editar esta categoría'
+        return redirect(url_for('verCategorias'))
+    if categoria is None:
+        session['mensajeCustom'] = 'Categoría no encontrada'
+        return redirect(url_for('verCategorias'))
+    
+    form = formCategoria(obj=categoria)
+    if request.method == 'POST' and form.validate_on_submit():
+        categoria.nombre = form.nombre.data
+        categoria.color = form.color.data
+        try:
+            db.session.commit()
+            session['mensajeCustom'] = 'Categoría modificada correctamente'
+            return redirect(url_for('verCategoria', id=id))
+        except Exception as e:
+            db.session.rollback()
+            session['mensajeCustom'] = f'Error al modificar la categoría{str(e)}'
+    return render_template('editar_categoria.html', form=form)
+        
 # métodos tareas
 @app.route('/tarea/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
