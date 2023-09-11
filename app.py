@@ -82,6 +82,14 @@ class Usuario(db.Model, UserMixin):
     
     def is_active(self):
         return True
+    
+def obtenerColorCategoria(idCategoria):
+    categoria = Categoria.query.filter_by(id=idCategoria).first()
+    return categoria.color
+
+def obtenerNombreCategoria(idCategoria):
+    categoria = Categoria.query.filter_by(id=idCategoria).first()
+    return categoria.nombre
 
 @app.route('/')
 @login_required
@@ -163,9 +171,17 @@ def verTareas(id=None, estado=None):
             query = query.order_by(Tarea.fecha_termino.desc())
         
         tareas = query.all()
+        # agregando a tareas el color respectivo, con el campo "color":
+        for tarea in tareas:
+            if tarea.categoria_id is not None:
+                tarea.color = obtenerColorCategoria(tarea.categoria_id)
+                tarea.categoria_nombre = obtenerNombreCategoria(tarea.categoria_id)
         return render_template('tareas.html', tareas=tareas, calcDiasRestantes = calcDiasRestantes, orden=orden, estado=estado)
     else:
         tarea = Tarea.query.get(id)
+        if tarea.categoria_id is not None:
+            tarea.color = obtenerColorCategoria(tarea.categoria_id)
+            tarea.categoria_nombre = obtenerNombreCategoria(tarea.categoria_id)
         dias_restantes = calcDiasRestantes(tarea.fecha_termino)
         if tarea.usuario_id != current_user.id:
             session['mensajeCustom'] = 'No tienes permiso para ver esta tarea'
@@ -176,11 +192,25 @@ def verTareas(id=None, estado=None):
 @login_required
 def crearTarea():
     form = formTarea()
+    # cargar las categorías desde la base de datos
+    categorias = Categoria.query.filter_by(usuario_id=current_user.id).all()
+    # agregar la opción "sin categoría"
+    form.categoria.choices = [('0', 'Sin categoría')]
+    # agregar las categorías al formulario
+    form.categoria.choices += [(categoria.id, categoria.nombre) for categoria in categorias]
+
     if form.validate_on_submit():
         titulo = form.titulo.data
         descripcion = form.descripcion.data
         fecha_termino = form.fecha_termino.data
-        db.session.add(Tarea(titulo, descripcion, fecha_termino, usuario_id=current_user.id))
+        categoria = form.categoria.data
+        if categoria == 0:
+            db.session.add(Tarea(titulo, descripcion, fecha_termino, usuario_id=current_user.id))
+        else:
+            # TODO: validar que la categoría exista
+            # TODO: validar que la categoría pertenezca al usuario
+            db.session.add(Tarea(titulo, descripcion, fecha_termino, categoria_id=categoria, usuario_id=current_user.id))
+
         db.session.commit()
         session['mensajeCustom'] = 'Tarea creada correctamente'
         return redirect(url_for('verTareas'))
@@ -209,6 +239,7 @@ def crearCategoria():
 @app.route('/categoria/eliminar/<int:id>', methods=['GET'])
 @login_required
 def eliminarCategoria(id):
+    # TODO: eliminar las tareas de la categoría
     categoria = Categoria.query.get(id)
     if categoria.usuario_id != current_user.id:
         session['mensajeCustom'] = 'No tienes permiso para eliminar esta categoría'

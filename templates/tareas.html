@@ -55,6 +55,9 @@
                     {% endif %}
                     {% endif %}
                     <p class="card-text">{{ tarea.descripcion }}</p>
+                    {% if tarea.categoria_id != None %}
+                        <a href="{{ url_for('verCategoria', id=tarea.categoria_id ) }}" class="btn btn-{{tarea.color}} mt-2">{{ tarea.categoria_nombre}}</a>
+                    {% endif %}
                 </div>
             </div>
         </a>

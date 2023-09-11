@@ -19,6 +19,11 @@
         {{ form.fecha_termino (class="form-control") }}
     </div>
     <div class="form-group">
+        {{ form.categoria.label }}
+        <small>(Este campo es opcional)</small>
+        {{ form.categoria (class="form-select") }}
+    </div>
+    <div class="form-group">
         {{ form.enviarBtn (class="btn btn-primary mt-2") }}
     </div>
 </form>

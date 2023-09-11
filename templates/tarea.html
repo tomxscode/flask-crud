@@ -8,6 +8,7 @@
 <div class="card mt-4 {% if tarea.estado %}bg-secondary{% endif %}">
     <div class="card-body">
         <h5 class="card-title">{{ tarea.titulo }}</h5>
+        <p class="card-subtitle"><a href="{{ url_for('verCategoria', id=tarea.categoria_id ) }}" class="btn btn-{{ tarea.color}}">{{ tarea.categoria_nombre }}</a></p>
         <p class="card-text">{{ tarea.descripcion }}</p>
         {% if dias_restantes >= 0 %}
             <p class="text-success">La tarea caduca en {{ dias_restantes }} día(s)</p>
