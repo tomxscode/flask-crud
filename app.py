@@ -91,7 +91,23 @@ def obtenerNombreCategoria(idCategoria):
     categoria = Categoria.query.filter_by(id=idCategoria).first()
     return categoria.nombre
 
-from routes import *
+@app.route('/')
+@login_required
+def index():
+    # funcionalidad para generar un gráfico
+    # obtención de tareas
+    tareas_completadas = Tarea.query.filter_by(usuario_id = current_user.id, estado=True).count()
+    tareas_pendientes = Tarea.query.filter_by(usuario_id = current_user.id, estado=False).count()
+
+    # datos para los gráficos
+    labels = json.dumps(['Completadas', 'Pendientes'])
+    datos = json.dumps([tareas_completadas, tareas_pendientes])
+
+    return render_template('index.html', labels=labels, values=datos)
+
+from routes.usuario import *
+from routes.tareas import *
+from routes.categorias import *
 
 # iniciar el servidor flask
 if __name__ == '__main__':

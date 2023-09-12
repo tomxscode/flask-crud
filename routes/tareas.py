@@ -1,68 +1,9 @@
 from flask import render_template, session, redirect, flash, request, url_for
-from flask_login import login_required, login_user, current_user, logout_user
+from flask_login import login_required, current_user
 import json
-from datetime import datetime
-from app import app, db, Categoria, Tarea, Usuario, obtenerColorCategoria, obtenerNombreCategoria, calcDiasRestantes, login_manager
+from app import app, db, Tarea, Categoria, calcDiasRestantes, obtenerColorCategoria, obtenerNombreCategoria, login_manager
 from forms.formTareas import formTarea
-from forms.usuario import formRegistro, formLogin
-from forms.formCategoria import formCategoria
 
-@app.route('/')
-@login_required
-def index():
-    # funcionalidad para generar un gráfico
-    # obtención de tareas
-    tareas_completadas = Tarea.query.filter_by(usuario_id = current_user.id, estado=True).count()
-    tareas_pendientes = Tarea.query.filter_by(usuario_id = current_user.id, estado=False).count()
-
-    # datos para los gráficos
-    labels = json.dumps(['Completadas', 'Pendientes'])
-    datos = json.dumps([tareas_completadas, tareas_pendientes])
-
-    return render_template('index.html', labels=labels, values=datos)
-
-# manejo de login
-@login_manager.user_loader
-def load_user(id):
-    return Usuario.query.get(int(id))
-
-@app.route('/login/', methods=['GET', 'POST'])
-def login():
-    form = formLogin()
-    if form.validate_on_submit():
-        usuario = Usuario.query.filter_by(username=form.usuario.data).first()
-        if usuario and usuario.password == form.password.data:
-            login_user(usuario)
-            session['mensajeCustom'] = 'Bienvenido ' + usuario.username
-            return redirect(url_for('verTareas'))
-        else:
-            session['mensajeCustom'] = 'Usuario o contraseña incorrectos'
-    return render_template('login.html', form=form)
-
-@app.route('/registro/', methods=['GET', 'POST'])
-def registro():
-    form = formRegistro()
-    if form.validate_on_submit():
-        # verificar si el usuario existe
-        usuario_existente = Usuario.query.filter_by(username=form.usuario.data).first()
-        if usuario_existente:
-            session['mensajeCustom'] = 'El usuario ya existe'
-        else:
-            usuario = Usuario(form.usuario.data, form.email.data, form.password.data)
-            db.session.add(usuario)
-            db.session.commit()
-            session['mensajeCustom'] = 'Usuario registrado'
-            return redirect(url_for('login'))
-    return render_template('registro.html', form=form)
-
-@app.route('/logout/', methods=['GET', 'POST'])
-@login_required
-def logout():
-    session['mensajeCustom'] = 'Hasta luego ' + current_user.username
-    logout_user()
-    return redirect(url_for('login'))
-
-# ruta de tareas, si se le pasa el valor id entonces mostrará un template, caso contrario, mostrará otro
 @app.route('/tarea/', methods=['GET', 'POST'])
 @app.route('/tarea/<int:id>', methods=['GET', 'POST'])
 @app.route('/tarea/filtrar/<estado>', methods=['GET', 'POST'])
@@ -132,81 +73,6 @@ def crearTarea():
         return redirect(url_for('verTareas'))
     return render_template('crear_tarea.html', form=form)
 
-# métodos categorias
-@app.route('/categoria/crear', methods=['POST', 'GET'])
-@login_required
-def crearCategoria():
-    form = formCategoria()
-    if form.validate_on_submit():
-        nombre = form.nombre.data
-        # comprobar si no hay una categoría con el mismo nombre del mismo usuario
-        categoria_existente = Categoria.query.filter_by(nombre=nombre, usuario_id=current_user.id).first()
-        if categoria_existente is not None:
-            session['mensajeCustom'] = 'Ya existe una categoría con ese nombre'
-            return redirect(url_for('crearCategoria'))
-        color = form.color.data
-        db.session.add(Categoria(nombre, color, current_user.id))
-        db.session.commit()
-        session['mensajeCustom'] = 'Categoría creada correctamente'
-        # rederijir al usuario a la categoria creada
-        return redirect(url_for('verCategoria', id=Categoria.query.filter_by(nombre=nombre, usuario_id=current_user.id).first().id))
-    return render_template('crear_categoria.html', form=form)
-
-@app.route('/categoria/eliminar/<int:id>', methods=['GET'])
-@login_required
-def eliminarCategoria(id):
-    # TODO: eliminar las tareas de la categoría
-    categoria = Categoria.query.get(id)
-    if categoria.usuario_id != current_user.id:
-        session['mensajeCustom'] = 'No tienes permiso para eliminar esta categoría'
-        return redirect(url_for('verCategorias'))
-    else:
-        db.session.delete(categoria)
-        db.session.commit()
-        session['mensajeCustom'] = 'Categoría eliminada correctamente'
-        return redirect(url_for('verCategoria'))
-
-@app.route('/categoria/', methods=['GET'])
-@app.route('/categoria/<int:id>', methods=['GET'])
-@login_required
-def verCategoria(id = None):
-    if id is None:
-        # mostrar todas las categorias
-        categorias = Categoria.query.filter_by(usuario_id=current_user.id).all()
-        return render_template('categorias.html', categorias=categorias)
-    else:
-        categoria = Categoria.query.get(id)
-        if categoria.usuario_id != current_user.id:
-            session['mensajeCustom'] = 'No tienes permiso para ver esta categoría'
-            return redirect(url_for('verCategorias'))
-        else:
-            return render_template('categoria.html', categoria=categoria)
-        
-@app.route('/categoria/editar/<int:id>', methods=['GET', 'POST'])
-@login_required
-def editarCategoria(id):
-    categoria = Categoria.query.get(id)
-    if categoria.usuario_id != current_user.id:
-        session['mensajeCustom'] = 'No tienes permiso para editar esta categoría'
-        return redirect(url_for('verCategorias'))
-    if categoria is None:
-        session['mensajeCustom'] = 'Categoría no encontrada'
-        return redirect(url_for('verCategorias'))
-    
-    form = formCategoria(obj=categoria)
-    if request.method == 'POST' and form.validate_on_submit():
-        categoria.nombre = form.nombre.data
-        categoria.color = form.color.data
-        try:
-            db.session.commit()
-            session['mensajeCustom'] = 'Categoría modificada correctamente'
-            return redirect(url_for('verCategoria', id=id))
-        except Exception as e:
-            db.session.rollback()
-            session['mensajeCustom'] = f'Error al modificar la categoría{str(e)}'
-    return render_template('editar_categoria.html', form=form)
-        
-# métodos tareas
 @app.route('/tarea/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editarTarea(id):
