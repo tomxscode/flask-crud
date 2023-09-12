@@ -25,7 +25,6 @@ def crearCategoria():
 @app.route('/categoria/eliminar/<int:id>', methods=['GET'])
 @login_required
 def eliminarCategoria(id):
-    # TODO: eliminar las tareas de la categoría
     categoria = Categoria.query.get(id)
     if categoria.usuario_id != current_user.id:
         session['mensajeCustom'] = 'No tienes permiso para eliminar esta categoría'

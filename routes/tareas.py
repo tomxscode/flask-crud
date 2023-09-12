@@ -64,13 +64,19 @@ def crearTarea():
         if categoria == 0:
             db.session.add(Tarea(titulo, descripcion, fecha_termino, usuario_id=current_user.id))
         else:
-            # TODO: validar que la categoría exista
-            # TODO: validar que la categoría pertenezca al usuario
-            db.session.add(Tarea(titulo, descripcion, fecha_termino, categoria_id=categoria, usuario_id=current_user.id))
-
-        db.session.commit()
-        session['mensajeCustom'] = 'Tarea creada correctamente'
-        return redirect(url_for('verTareas'))
+            categoria_existe = Categoria.query.filter_by(id=categoria).first()
+            if categoria_existe is None:
+                session['mensajeCustom'] = 'La categoría no existe'
+                return redirect(url_for('verTareas'))
+            else:
+                if categoria_existe.usuario_id != current_user.id:
+                    session['mensajeCustom'] = 'No tienes permiso para crear esta tarea'
+                    return redirect(url_for('verTareas'))
+                else:
+                    db.session.add(Tarea(titulo, descripcion, fecha_termino, categoria_id=categoria, usuario_id=current_user.id))
+                    db.session.commit()
+                    session['mensajeCustom'] = 'Tarea creada correctamente'
+                    return redirect(url_for('verTareas'))
     return render_template('crear_tarea.html', form=form)
 
 @app.route('/tarea/editar/<int:id>', methods=['GET', 'POST'])

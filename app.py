@@ -1,4 +1,5 @@
-from flask import Flask, render_template, session, redirect, flash
+#TODO: Dejar que el usuario decida qué quiere hacer al borrar una categoría con tareas
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_required
 
