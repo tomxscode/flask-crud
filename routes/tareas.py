@@ -51,32 +51,28 @@ def crearTarea():
     form = formTarea()
     # cargar las categorías desde la base de datos
     categorias = Categoria.query.filter_by(usuario_id=current_user.id).all()
-    # agregar la opción "sin categoría"
-    form.categoria.choices = [('0', 'Sin categoría')]
     # agregar las categorías al formulario
-    form.categoria.choices += [(categoria.id, categoria.nombre) for categoria in categorias]
+    form.categoria.choices = [(categoria.id, categoria.nombre) for categoria in categorias]
 
     if form.validate_on_submit():
         titulo = form.titulo.data
         descripcion = form.descripcion.data
         fecha_termino = form.fecha_termino.data
         categoria = form.categoria.data
-        if categoria == 0:
-            db.session.add(Tarea(titulo, descripcion, fecha_termino, usuario_id=current_user.id))
+
+        categoria_existe = Categoria.query.filter_by(id=categoria).first()
+        if categoria_existe is None:
+            session['mensajeCustom'] = 'La categoría no existe'
+            return redirect(url_for('verTareas'))
         else:
-            categoria_existe = Categoria.query.filter_by(id=categoria).first()
-            if categoria_existe is None:
-                session['mensajeCustom'] = 'La categoría no existe'
+            if categoria_existe.usuario_id != current_user.id:
+                session['mensajeCustom'] = 'No tienes permiso para crear esta tarea'
                 return redirect(url_for('verTareas'))
             else:
-                if categoria_existe.usuario_id != current_user.id:
-                    session['mensajeCustom'] = 'No tienes permiso para crear esta tarea'
-                    return redirect(url_for('verTareas'))
-                else:
-                    db.session.add(Tarea(titulo, descripcion, fecha_termino, categoria_id=categoria, usuario_id=current_user.id))
-                    db.session.commit()
-                    session['mensajeCustom'] = 'Tarea creada correctamente'
-                    return redirect(url_for('verTareas'))
+                db.session.add(Tarea(titulo, descripcion, fecha_termino, categoria_id=categoria, usuario_id=current_user.id))
+                db.session.commit()
+                session['mensajeCustom'] = 'Tarea creada correctamente'
+                return redirect(url_for('verTareas'))
     return render_template('crear_tarea.html', form=form)
 
 @app.route('/tarea/editar/<int:id>', methods=['GET', 'POST'])

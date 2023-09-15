@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from app import app, db, Usuario, login_manager
 from forms.usuario import formRegistro, formLogin
+from app import Categoria
 
 @login_manager.user_loader
 def load_user(id):
@@ -33,6 +34,8 @@ def registro():
         else:
             usuario = Usuario(form.usuario.data, form.email.data, form.password.data)
             db.session.add(usuario)
+            db.session.commit()
+            db.session.add(Categoria("Sin categoria", "primary", usuario.id))
             db.session.commit()
             session['mensajeCustom'] = 'Usuario registrado'
             return redirect(url_for('login'))
