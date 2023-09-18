@@ -64,6 +64,10 @@ class Tarea(db.Model):
         self.usuario_id = usuario_id
         self.categoria_id = categoria_id
 
+    def obtenerCantTareasPorCategoria(categoria_id):
+        tareas = Tarea.query.filter_by(categoria_id=categoria_id).all()
+        return len(tareas)
+
     def __repr__(self):
         return '<Tarea %r>' % self.titulo
 

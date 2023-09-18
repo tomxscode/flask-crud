@@ -1,6 +1,6 @@
 from flask import render_template, session, redirect, flash, request, url_for
 from flask_login import login_required, current_user
-from app import app, db, Categoria
+from app import app, db, Categoria, Tarea
 from forms.formCategoria import formCategoria
 
 @app.route('/categoria/crear', methods=['POST', 'GET'])
@@ -30,6 +30,12 @@ def eliminarCategoria(id):
         session['mensajeCustom'] = 'No tienes permiso para eliminar esta categoría'
         return redirect(url_for('verCategorias'))
     else:
+        # Obteniendo la cantidad de tareas que tiene la categoría
+        num_tareas = Tarea.obtenerCantTareasPorCategoria(categoria.id)
+        if num_tareas > 0:
+            # Si la cantidad de tareas es mayor a 0, no se puede eliminar la categoría
+            session['mensajeCustom'] = 'No se puede eliminar esta categoría porque tiene tareas asociadas'
+            return redirect(url_for('verCategoria', id=id))
         db.session.delete(categoria)
         db.session.commit()
         session['mensajeCustom'] = 'Categoría eliminada correctamente'
